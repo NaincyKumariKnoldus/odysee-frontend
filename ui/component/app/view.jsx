@@ -86,6 +86,7 @@ type Props = {
   setActiveChannelIfNotSet: () => void,
   setIncognito: (boolean) => void,
   fetchModBlockedList: () => void,
+  doChannelStatus: (boolean) => Promise<Array<string>>,
   resolveUris: (Array<string>) => void,
   fetchModAmIList: () => void,
 };
@@ -119,6 +120,7 @@ function App(props: Props) {
     setActiveChannelIfNotSet,
     setIncognito,
     fetchModBlockedList,
+    doChannelStatus,
     resolveUris,
     subscriptions,
     fetchModAmIList,
@@ -309,12 +311,19 @@ function App(props: Props) {
     } else if (hasNoChannels) {
       setIncognito(true);
     }
+  }, [hasMyChannels, hasNoChannels, hasActiveChannelClaim, setActiveChannelIfNotSet, setIncognito]);
 
+  useEffect(() => {
     if (hasMyChannels) {
       fetchModBlockedList();
       fetchModAmIList();
+      doChannelStatus(false).then((needToSign: Array<string>) => {
+        if (needToSign.length !== 0) {
+          doChannelStatus(true);
+        }
+      });
     }
-  }, [hasMyChannels, hasNoChannels, hasActiveChannelClaim, setActiveChannelIfNotSet, setIncognito]);
+  }, [hasMyChannels, fetchModBlockedList, fetchModAmIList, doChannelStatus]);
 
   useEffect(() => {
     // $FlowFixMe
