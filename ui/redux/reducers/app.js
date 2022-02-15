@@ -83,7 +83,7 @@ const defaultState: AppState = {
   welcomeVersion: 0.0,
   allowAnalytics: false,
   hasNavigated: false,
-  interestedInYoutubeSync: false,
+  interestedInYoutubeSync: true,
   activeChannel: undefined,
   incognito: false,
   mobilePlayerDimensions: undefined,
