@@ -417,7 +417,7 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
                     </UriIndicator>
                   </div>
                 )}
-                <ClaimPreviewSubtitle uri={uri} type={type} showMemberBadge={!showMemberBadge} />
+                <ClaimPreviewSubtitle uri={uri} type={type} showAtSign={isChannelUri} showMemberBadge={!showMemberBadge} />
                 {(pending || !!reflectingProgress) && <PublishPending uri={uri} />}
                 {channelSubscribers}
               </div>
