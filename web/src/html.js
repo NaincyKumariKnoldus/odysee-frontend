@@ -164,6 +164,18 @@ function buildClaimOgMetadata(uri, claim, overrideOptions = {}, referrerQuery) {
     getThumbnailCdnUrl(OG_IMAGE_URL) ||
     `${URL}/public/v2-og.png`;
 
+  const getOgType = (streamType) => {
+    switch (streamType) {
+      // https://ogp.me/?fbclid=IwAR0Dr3Rb3tw1W5wjFtuRMZfwewM2vlrSnNp-_ZKlvCzo5nKuX2TuTqt0kU8#types
+      case 'video':
+        return 'video.other';
+      case 'audio':
+        return 'music.song';
+      default:
+        return 'website';
+    }
+  };
+
   // Allow for overriding default claim based og metadata
   const title = overrideOptions.title || claimTitle;
   const description = overrideOptions.description || claimDescription;
@@ -186,9 +198,10 @@ function buildClaimOgMetadata(uri, claim, overrideOptions = {}, referrerQuery) {
   head += `<meta name="twitter:site" content="@OdyseeTeam"/>`;
   head += `<meta property="og:description" content="${cleanDescription}"/>`;
   head += `<meta property="og:image" content="${claimThumbnail}"/>`;
+  head += `<meta property="og:image:secure_url" content="${claimThumbnail}"/>`;
   head += `<meta property="og:locale" content="${claimLanguage}"/>`;
   head += `<meta property="og:site_name" content="${SITE_NAME}"/>`;
-  head += `<meta property="og:type" content="website"/>`;
+  head += `<meta property="og:type" content="${getOgType(value?.stream_type)}"/>`;
   head += `<meta property="og:title" content="${title}"/>`;
   head += `<meta name="twitter:title" content="${title}"/>`;
   head += `<meta property="og:url" content="${claimPath}"/>`;

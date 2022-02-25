@@ -20,12 +20,7 @@ import moment from 'moment';
 import { getLivestreamUris } from 'util/livestream';
 
 const DEFAULT_LIVESTREAM_TILE_LIMIT = 8;
-
-const SECTION = {
-  HIDDEN: 0,
-  LESS: 1,
-  MORE: 2,
-};
+const SECTION = Object.freeze({ HIDDEN: 0, LESS: 1, MORE: 2 });
 
 type Props = {
   dynamicRouteProps: RowDataItem,
@@ -58,6 +53,7 @@ function DiscoverPage(props: Props) {
   } = props;
 
   const [liveSectionStore, setLiveSectionStore] = usePersistedState('discover:liveSection', SECTION.LESS);
+  const [expandedYPos, setExpandedYPos] = useState(null);
 
   const buttonRef = useRef();
   const isHovering = useHover(buttonRef);
@@ -93,38 +89,43 @@ function DiscoverPage(props: Props) {
   const useDualList = liveSection === SECTION.LESS && liveTilesOverLimit;
 
   function getMeta() {
-    if (liveSection === SECTION.MORE && liveTilesOverLimit) {
-      return (
-        <Button
-          label={__('Show less livestreams')}
-          button="link"
-          iconRight={ICONS.UP}
-          className="claim-grid__title--secondary"
-          onClick={() => setLiveSection(SECTION.LESS)}
-        />
-      );
-    }
+    return (
+      <>
+        {!dynamicRouteProps ? (
+          <a
+            className="help"
+            href="https://odysee.com/@OdyseeHelp:b/trending:50"
+            title={__('Learn more about Credits on %DOMAIN%', { DOMAIN })}
+          >
+            <I18nMessage tokens={{ lbc: <LbcSymbol /> }}>Results boosted by %lbc%</I18nMessage>
+          </a>
+        ) : (
+          tag &&
+          !isMobile && (
+            <Button
+              ref={buttonRef}
+              button="alt"
+              icon={ICONS.SUBSCRIBE}
+              iconColor="red"
+              onClick={handleFollowClick}
+              requiresAuth={IS_WEB}
+              label={label}
+            />
+          )
+        )}
 
-    return !dynamicRouteProps ? (
-      <a
-        className="help"
-        href="https://odysee.com/@OdyseeHelp:b/trending:50"
-        title={__('Learn more about Credits on %DOMAIN%', { DOMAIN })}
-      >
-        <I18nMessage tokens={{ lbc: <LbcSymbol /> }}>Results boosted by %lbc%</I18nMessage>
-      </a>
-    ) : (
-      tag && !isMobile && (
-        <Button
-          ref={buttonRef}
-          button="alt"
-          icon={ICONS.SUBSCRIBE}
-          iconColor="red"
-          onClick={handleFollowClick}
-          requiresAuth={IS_WEB}
-          label={label}
-        />
-      )
+        {liveSection === SECTION.MORE && liveTilesOverLimit && (
+          <div className="livestream-list--view-more">
+            <Button
+              label={__('Show less livestreams')}
+              button="link"
+              iconRight={ICONS.UP}
+              className="claim-grid__title--secondary"
+              onClick={() => setLiveSection(SECTION.LESS)}
+            />
+          </div>
+        )}
+      </>
     );
   }
 
@@ -209,6 +210,14 @@ function DiscoverPage(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps, (on mount only)
   }, []);
 
+  // Maintain y-position when expanding livestreams section:
+  React.useEffect(() => {
+    if (liveSection === SECTION.MORE && expandedYPos !== null) {
+      window.scrollTo(0, expandedYPos);
+      setExpandedYPos(null);
+    }
+  }, [liveSection, expandedYPos]);
+
   return (
     <Page noFooter fullWidthPage={tileLayout}>
       {useDualList && (
@@ -232,6 +241,7 @@ function DiscoverPage(props: Props) {
               className="claim-grid__title--secondary"
               onClick={() => {
                 doFetchActiveLivestreams();
+                setExpandedYPos(window.scrollY);
                 setLiveSection(SECTION.MORE);
               }}
             />

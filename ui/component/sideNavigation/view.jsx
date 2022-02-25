@@ -5,6 +5,7 @@ import * as ICONS from 'constants/icons';
 import * as KEYCODES from 'constants/keycodes';
 import React, { useEffect } from 'react';
 import Button from 'component/button';
+import ClaimPreviewTitle from 'component/claimPreviewTitle';
 import classnames from 'classnames';
 import Icon from 'component/common/icon';
 import NotificationBubble from 'component/notificationBubble';
@@ -34,14 +35,19 @@ const GO_LIVE = {
   icon: ICONS.VIDEO,
 };
 
-const HOME = {
+const getHomeButton = (additionalAction) => ({
   title: 'Home',
   link: `/`,
   icon: ICONS.HOME,
   onClick: () => {
-    if (window.location.pathname === '/') window.location.reload();
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      if (additionalAction) {
+        additionalAction();
+      }
+    }
   },
-};
+});
 
 const RECENT_FROM_FOLLOWING = {
   title: 'Following --[sidebar button]--',
@@ -113,6 +119,7 @@ type Props = {
   homepageData: any,
   activeChannelStakedLevel: number,
   wildWestDisabled: boolean,
+  doClearClaimSearch: () => void,
 };
 
 function SideNavigation(props: Props) {
@@ -132,6 +139,7 @@ function SideNavigation(props: Props) {
     followedTags,
     activeChannelStakedLevel,
     wildWestDisabled,
+    doClearClaimSearch,
   } = props;
 
   const isLargeScreen = useIsLargeScreen();
@@ -148,6 +156,12 @@ function SideNavigation(props: Props) {
       title: 'New Channel',
       link: `/$/${PAGES.CHANNEL_NEW}`,
       icon: ICONS.CHANNEL,
+      hideForUnauth: true,
+    },
+    {
+      title: 'Sync YouTube Channel',
+      link: `/$/${PAGES.YOUTUBE_SYNC}`,
+      icon: ICONS.YOUTUBE,
       hideForUnauth: true,
     },
     {
@@ -366,6 +380,10 @@ function SideNavigation(props: Props) {
   React.useEffect(() => {
     // $FlowFixMe
     document.body.style.overflowY = showOverlay ? 'hidden' : '';
+    return () => {
+      // $FlowFixMe
+      document.body.style.overflowY = '';
+    };
   }, [showOverlay]);
 
   React.useEffect(() => {
@@ -473,7 +491,7 @@ function SideNavigation(props: Props) {
                 'navigation-links--absolute': shouldRenderLargeMenu,
               })}
             >
-              {getLink(HOME)}
+              {getLink(getHomeButton(doClearClaimSearch))}
               {getLink(RECENT_FROM_FOLLOWING)}
               {getLink(PLAYLISTS)}
             </ul>
@@ -518,16 +536,19 @@ function SideNavigation(props: Props) {
 function SubscriptionListItem({ subscription }: { subscription: Subscription }) {
   const { uri, channelName } = subscription;
   return (
-    <li className="navigation-link__wrapper">
+    <li className="navigation-link__wrapper navigation__subscription">
       <Button
         navigate={uri}
         className="navigation-link navigation-link--with-thumbnail"
         activeClass="navigation-link--active"
       >
         <ChannelThumbnail xsmall uri={uri} hideStakedIndicator />
-        <span dir="auto" className="button__label">
-          {channelName}
-        </span>
+        <div className="navigation__subscription-title">
+          <ClaimPreviewTitle uri={uri} />
+          <span dir="auto" className="channel-name">
+            {channelName}
+          </span>
+        </div>
       </Button>
     </li>
   );
