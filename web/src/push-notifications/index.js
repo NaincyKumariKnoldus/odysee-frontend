@@ -78,6 +78,7 @@ const getFcmToken = async (): Promise<string | void> => {
 };
 
 const subscribe = async (userId: number, permanent: boolean = true): Promise<boolean> => {
+  console.log('NEKO subscribe');
   try {
     var fcmToken = await getFcmToken();
     if (window.cordova) {
