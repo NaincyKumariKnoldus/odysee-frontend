@@ -398,37 +398,39 @@ function App(props: Props) {
 
     const getLocaleEndpoint = 'https://api.odysee.com/locale/get';
     let gdprRequired;
-    try {
-      gdprRequired = localStorage.getItem('gdprRequired');
-    } catch (err) {
-      if (err) return;
-    }
-    // gdpr is known to be required, add script
-    if (gdprRequired === 'true') {
-      // $FlowFixMe
-      document.head.appendChild(script);
-      // $FlowFixMe
-      document.head.appendChild(secondScript);
-    }
+    if (!window.cordova) {
+      try {
+        gdprRequired = localStorage.getItem('gdprRequired');
+      } catch (err) {
+        if (err) return;
+      }
+      // gdpr is known to be required, add script
+      if (gdprRequired === 'true') {
+        // $FlowFixMe
+        document.head.appendChild(script);
+        // $FlowFixMe
+        document.head.appendChild(secondScript);
+      }
 
-    // haven't done a gdpr check, do it now
-    if (gdprRequired === null) {
-      (async function () {
-        const response = await fetch(getLocaleEndpoint);
-        const json = await response.json();
-        const gdprRequiredBasedOnLocation = json.data.gdpr_required;
-        // note we need gdpr and load script
-        if (gdprRequiredBasedOnLocation) {
-          localStorage.setItem('gdprRequired', 'true');
-          // $FlowFixMe
-          document.head.appendChild(script);
-          // $FlowFixMe
-          document.head.appendChild(secondScript);
-          // note we don't need gdpr, save to session
-        } else if (gdprRequiredBasedOnLocation === false) {
-          localStorage.setItem('gdprRequired', 'false');
-        }
-      })();
+      // haven't done a gdpr check, do it now
+      if (gdprRequired === null) {
+        (async function () {
+          const response = await fetch(getLocaleEndpoint);
+          const json = await response.json();
+          const gdprRequiredBasedOnLocation = json.data.gdpr_required;
+          // note we need gdpr and load script
+          if (gdprRequiredBasedOnLocation) {
+            localStorage.setItem('gdprRequired', 'true');
+            // $FlowFixMe
+            document.head.appendChild(script);
+            // $FlowFixMe
+            document.head.appendChild(secondScript);
+            // note we don't need gdpr, save to session
+          } else if (gdprRequiredBasedOnLocation === false) {
+            localStorage.setItem('gdprRequired', 'false');
+          }
+        })();
+      }
     }
 
     return () => {
