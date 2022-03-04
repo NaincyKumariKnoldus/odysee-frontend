@@ -10,7 +10,7 @@ import React from 'react';
 import { useIsMobile } from 'effects/use-screensize';
 
 const LivestreamChatLayout = lazyImport(() => import('component/livestreamChatLayout' /* webpackChunkName: "chat" */));
-const LIVESTREAM_STATUS_CHECK_INTERVAL = 60000;
+const LIVESTREAM_STATUS_CHECK_INTERVAL = 30000;
 
 type Props = {
   activeLivestreamForChannel: any,

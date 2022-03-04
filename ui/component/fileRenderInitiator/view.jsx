@@ -72,7 +72,7 @@ export default function FileRenderInitiator(props: Props) {
   // check if there is a time or autoplay parameter, if so force autoplay
   const urlTimeParam = href && href.indexOf('t=') > -1;
   const forceAutoplayParam = locationState && locationState.forceAutoplay;
-  const isCurrentClaimLive = activeLivestreamForChannel && claimId && activeLivestreamForChannel.claimId === claimId;
+  // const isCurrentClaimLive = activeLivestreamForChannel && claimId && activeLivestreamForChannel.claimId === claimId;
   const isMobileClaimLive = isMobile && isCurrentClaimLive;
   const shouldAutoplay = forceAutoplayParam || urlTimeParam || autoplay || isCurrentClaimLive;
 
@@ -80,7 +80,6 @@ export default function FileRenderInitiator(props: Props) {
   const canViewFile = isFree || claimWasPurchased;
   const isPlayable = RENDER_MODES.FLOATING_MODES.includes(renderMode) || isCurrentClaimLive;
   const isText = RENDER_MODES.TEXT_MODES.includes(renderMode);
-  const isMobileClaimLive = isMobile && isCurrentClaimLive;
   const foundCover = thumbnail !== FileRenderPlaceholder;
 
   const renderUnsupported = RENDER_MODES.UNSUPPORTED_IN_THIS_APP.includes(renderMode);

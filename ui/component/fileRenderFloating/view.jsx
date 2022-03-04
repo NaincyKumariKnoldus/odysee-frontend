@@ -17,7 +17,6 @@ import debounce from 'util/debounce';
 import { useHistory } from 'react-router';
 import { isURIEqual } from 'util/lbryURI';
 import AutoplayCountdown from 'component/autoplayCountdown';
-import LivestreamIframeRender from 'component/livestreamLayout/iframe-render';
 import usePlayNext from 'effects/use-play-next';
 import { getScreenWidth, getScreenHeight, clampFloatingPlayerToScreen, calculateRelativePos } from './helper-functions';
 
@@ -308,7 +307,7 @@ export default function FileRenderFloating(props: Props) {
           'content__viewer--secondary': isComment,
           // Disable theater mode class on livestream or floating viewer
           'content__viewer--theater-mode':
-            !isFloating && videoTheaterMode && playingUri?.uri === primaryUri && !isLivestream,
+            !isFloating && videoTheaterMode && playingUri?.uri === primaryUri && !isCurrentClaimLive,
           'content__viewer--disable-click': wasDragging,
           'content__viewer--mobile': isMobile,
         })}
@@ -336,9 +335,7 @@ export default function FileRenderFloating(props: Props) {
             />
           )}
 
-          {isCurrentClaimLive && channelClaimId ? (
-            <LivestreamIframeRender channelClaimId={channelClaimId} showLivestream mobileVersion />
-          ) : isReadyToPlay ? (
+          {isCurrentClaimLive && channelClaimId && isReadyToPlay ? (
             <FileRender className="draggable" uri={uri} />
           ) : collectionId && !canViewFile ? (
             <div className="content__loading">

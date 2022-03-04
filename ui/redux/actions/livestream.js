@@ -1,7 +1,7 @@
 // @flow
 import * as ACTIONS from 'constants/action_types';
 import { doClaimSearch } from 'redux/actions/claims';
-import { LIVESTREAM_LIVE_API, LIVESTREAM_STARTS_SOON_BUFFER, NEW_LIVESTREAM_LIVE_API } from 'constants/livestream';
+import { LIVESTREAM_LIVE_API, LIVESTREAM_STARTS_SOON_BUFFER } from 'constants/livestream';
 import moment from 'moment';
 
 const LiveStatus = Object.freeze({
@@ -74,21 +74,21 @@ const fetchLiveChannels = async (): Promise<LivestreamInfo> => {
  * @returns {Promise<{channelStatus: string}|{channelData: LivestreamInfo, channelStatus: string}>}
  */
 const fetchLiveChannel = async (channelId: string): Promise<LiveChannelStatus> => {
-  const newApiEndpoint = `${NEW_LIVESTREAM_LIVE_API}?channel_claim_id=`;
+  const newApiEndpoint = `${LIVESTREAM_LIVE_API}/`;
 
   const newApiResponse = await fetch(`${newApiEndpoint}${channelId}`);
   const newApiData = (await newApiResponse.json()).data;
 
   // transform data to old API standard
   const translatedData = {
-    url: newApiData.VideoURL,
+    url: newApiData.url,
     type: 'application/x-mpegurl',
-    viewCount: newApiData.ViewerCount,
-    claimId: newApiData.ChannelClaimID,
-    timestamp: newApiData.Start,
+    viewCount: newApiData.viewCount,
+    claimId: newApiData.claimID,
+    timestamp: newApiData.timestamp,
   };
 
-  const isLive = newApiData.Live;
+  const isLive = newApiData.live;
 
   try {
     // TODO: can remove fully at some point

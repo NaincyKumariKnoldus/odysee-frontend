@@ -64,7 +64,7 @@ const VideoJsEvents = ({
     analytics.playerVideoStartedEvent(embedded);
 
     // don't send this data on livestream
-    if (claimValues.size) {
+    if (claimValues.source && claimValues.size) {
       // convert bytes to bits, and then divide by seconds
       const contentInBits = Number(claimValues.source.size) * 8;
       const durationInSeconds = claimValues.video && claimValues.video.duration;

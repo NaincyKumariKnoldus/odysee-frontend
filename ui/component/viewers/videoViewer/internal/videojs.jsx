@@ -21,7 +21,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import recsys from './plugins/videojs-recsys/plugin';
 // import runAds from './ads';
 import videojs from 'video.js';
-import { NEW_LIVESTREAM_LIVE_API } from 'constants/livestream';
+import { LIVESTREAM_LIVE_API } from 'constants/livestream';
 
 const canAutoplay = require('./plugins/canAutoplay');
 
@@ -334,7 +334,7 @@ export default React.memo<Props>(function VideoJs(props: Props) {
         vjsPlayer.addClass('livestreamPlayer');
 
         // $FlowFixMe
-        const livestreamEndpoint = `${NEW_LIVESTREAM_LIVE_API}?channel_claim_id=${userClaimId}`;
+        const livestreamEndpoint = `${LIVESTREAM_LIVE_API}/${userClaimId}`;
 
         const livestreamResponse = await fetch(livestreamEndpoint, { method: 'GET' });
 
