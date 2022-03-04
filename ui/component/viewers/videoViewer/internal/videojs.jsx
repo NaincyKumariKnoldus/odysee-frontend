@@ -19,6 +19,7 @@ import playerjs from 'player.js';
 import qualityLevels from 'videojs-contrib-quality-levels';
 import React, { useEffect, useRef, useState } from 'react';
 import recsys from './plugins/videojs-recsys/plugin';
+import { useIsMobile } from 'effects/use-screensize';
 // import runAds from './ads';
 import videojs from 'video.js';
 const canAutoplay = require('./plugins/canAutoplay');
@@ -80,6 +81,7 @@ type Props = {
   claimValues: any,
   clearPosition: (string) => void,
   centerPlayButton: () => void,
+  doSetMobilePlayerDimensions: ({ height: number, width: number }) => void,
 };
 
 const videoPlaybackRates = [0.25, 0.5, 0.75, 1, 1.1, 1.25, 1.5, 1.75, 2];
@@ -143,7 +145,10 @@ export default React.memo<Props>(function VideoJs(props: Props) {
     uri,
     clearPosition,
     centerPlayButton,
+    doSetMobilePlayerDimensions,
   } = props;
+
+  const isMobile = useIsMobile();
 
   // will later store the videojs player
   const playerRef = useRef();
@@ -178,6 +183,7 @@ export default React.memo<Props>(function VideoJs(props: Props) {
     uri,
     playerServerRef,
     clearPosition,
+    doSetMobilePlayerDimensions,
   });
 
   const videoJsOptions = {
@@ -228,6 +234,9 @@ export default React.memo<Props>(function VideoJs(props: Props) {
 
       // Initialize mobile UI.
       player.mobileUi();
+
+      // Enable fluid mode
+      if (isMobile) player.addClass('vjs-fluid');
 
       if (!embedded) {
         window.player.bigPlayButton && window.player.bigPlayButton.hide();

@@ -67,6 +67,7 @@ type Props = {
   isMarkdownOrComment: boolean,
   doAnalyticsView: (string, number) => void,
   claimRewards: () => void,
+  doSetMobilePlayerDimensions: ({ height: number, width: number }) => void,
 };
 
 /*
@@ -109,6 +110,7 @@ function VideoViewer(props: Props) {
     previousListUri,
     videoTheaterMode,
     isMarkdownOrComment,
+    doSetMobilePlayerDimensions,
   } = props;
   const permanentUrl = claim && claim.permanent_url;
   const adApprovedChannelIds = homepageData ? getAllIds(homepageData) : [];
@@ -510,6 +512,7 @@ function VideoViewer(props: Props) {
         uri={uri}
         clearPosition={clearPosition}
         centerPlayButton={centerPlayButton}
+        doSetMobilePlayerDimensions={doSetMobilePlayerDimensions}
       />
     </div>
   );

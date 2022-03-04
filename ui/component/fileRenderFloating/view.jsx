@@ -19,7 +19,13 @@ import { isURIEqual } from 'util/lbryURI';
 import AutoplayCountdown from 'component/autoplayCountdown';
 import LivestreamIframeRender from 'component/livestreamLayout/iframe-render';
 import usePlayNext from 'effects/use-play-next';
-import { getScreenWidth, getScreenHeight, clampFloatingPlayerToScreen, calculateRelativePos } from './helper-functions';
+import {
+  getScreenWidth,
+  getScreenHeight,
+  clampFloatingPlayerToScreen,
+  calculateRelativePos,
+  getAspectRatio,
+} from './helper-functions';
 
 // scss/init/vars.scss
 // --header-height
@@ -31,6 +37,12 @@ const IS_DESKTOP_MAC = typeof process === 'object' ? process.platform === 'darwi
 const DEBOUNCE_WINDOW_RESIZE_HANDLER_MS = 100;
 export const INLINE_PLAYER_WRAPPER_CLASS = 'inline-player__wrapper';
 export const FLOATING_PLAYER_CLASS = 'content__viewer--floating';
+
+export const ORIENTATION = {
+  landscape: 'landscape',
+  portrait: 'portrait',
+  square: 'square',
+};
 
 // ****************************************************************************
 // ****************************************************************************
@@ -55,8 +67,8 @@ type Props = {
   doSetPlayingUri: ({ uri?: ?string }) => void,
   // mobile only
   isCurrentClaimLive?: boolean,
-  channelClaimId?: any,
-  mobilePlayerDimensions?: any,
+  channelClaimId: any,
+  mobilePlayerDimensions: { height: ?number },
   doSetMobilePlayerDimensions: ({ height?: ?number, width?: ?number }) => void,
 };
 
@@ -131,6 +143,15 @@ export default function FileRenderFloating(props: Props) {
 
     const rect = element.getBoundingClientRect();
 
+    let height = rect.height;
+    if (mobilePlayerDimensions.height) {
+      const videoNode = document.querySelector('video');
+      height = videoNode ? videoNode.offsetHeight : 0;
+
+      const cover = document.querySelector(`.${PRIMARY_PLAYER_WRAPPER_CLASS}`);
+      if (cover) cover.style.height = `${height}px`;
+    }
+
     // getBoundingClientRect returns a DomRect, not an object
     const objectRect = {
       top: rect.top,
@@ -138,7 +159,7 @@ export default function FileRenderFloating(props: Props) {
       bottom: rect.bottom,
       left: rect.left,
       width: rect.width,
-      height: rect.height,
+      height,
       // $FlowFixMe
       x: rect.x,
     };
@@ -146,10 +167,11 @@ export default function FileRenderFloating(props: Props) {
     // $FlowFixMe
     setFileViewerRect({ ...objectRect, windowOffset: window.pageYOffset });
 
-    if (!mobilePlayerDimensions || mobilePlayerDimensions.height !== rect.height) {
+    // TODO: fix resizing while on portrait view
+    /* if (mobilePlayerDimensions.height !== rect.height) {
       doSetMobilePlayerDimensions({ height: rect.height, width: getScreenWidth() });
-    }
-  }, [doSetMobilePlayerDimensions, mainFilePlaying, mobilePlayerDimensions]);
+    } */
+  }, [mainFilePlaying, mobilePlayerDimensions.height]);
 
   const restoreToRelativePosition = React.useCallback(() => {
     const SCROLL_BAR_PX = 12; // root: --body-scrollbar-width
@@ -238,12 +260,99 @@ export default function FileRenderFloating(props: Props) {
   }, [doSetPlayingUri, isComment, isFloating, playingUri]);
 
   React.useEffect(() => {
+    if (uri && isMobile && mobilePlayerDimensions.height) {
+      const videoNode = document.querySelector('video');
+
+      if (videoNode) {
+        videoNode.style.height = '100%';
+        videoNode.style.position = 'absolute';
+        videoNode.style.top = '0px';
+
+        const parent = document.querySelector('.vjs-fluid');
+        const orientation = getAspectRatio(mobilePlayerDimensions.height, getScreenWidth());
+
+        if (parent) {
+          switch (orientation) {
+            case ORIENTATION.landscape:
+              parent.classList.add('vjs-16-9');
+              break;
+            case ORIENTATION.portrait:
+              parent.classList.add('vjs-9-16');
+              break;
+            case ORIENTATION.square:
+              parent.classList.add('vjs-1-1');
+              break;
+          }
+        }
+      }
+    }
+  }, [isMobile, mobilePlayerDimensions, uri]);
+
+  React.useEffect(() => {
+    if (uri && isMobile && mobilePlayerDimensions.height) {
+      const cover = document.querySelector(`.${PRIMARY_PLAYER_WRAPPER_CLASS}`);
+      if (cover) {
+        cover.style.height = `${mobilePlayerDimensions.height}px`;
+        cover.style.opacity = '0';
+      }
+
+      const elem = document.querySelector('.content__viewer');
+      if (elem) elem.style.paddingBottom = `${mobilePlayerDimensions.height}px`;
+    }
+  }, [isMobile, mobilePlayerDimensions, uri]);
+
+  React.useEffect(() => {
+    if (!uri || !isMobile) return;
+
+    function handleScroll() {
+      if (mobilePlayerDimensions) {
+        const windowWidth = window.innerWidth;
+        const maxLandscapeHeight = (windowWidth * 9) / 16;
+
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const isHigherThanLandscape = scrollTop < mobilePlayerDimensions.height - maxLandscapeHeight;
+        const timesHigherThanLandscape = mobilePlayerDimensions.height / maxLandscapeHeight;
+
+        const element = document.querySelector('video');
+        const touchOverlay = document.querySelector('.vjs-touch-overlay');
+        const elem = document.querySelector('.content__viewer');
+
+        if (element) {
+          if (isHigherThanLandscape) {
+            if (mobilePlayerDimensions.height > maxLandscapeHeight) {
+              const result = mobilePlayerDimensions.height - scrollTop;
+              const amountNeededToCenter = (element.offsetHeight - result) / timesHigherThanLandscape;
+
+              element.style.top = `${amountNeededToCenter * -1}px`;
+              if (touchOverlay) touchOverlay.style.height = `${result}px`;
+              elem.style.paddingBottom = `${result}px`;
+            }
+          } else {
+            if (touchOverlay) touchOverlay.style.height = `${maxLandscapeHeight}px`;
+            elem.style.paddingBottom = `${maxLandscapeHeight}px`;
+          }
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobile, mobilePlayerDimensions, uri]);
+
+  React.useEffect(() => {
     if (isFloating) doFetchRecommendedContent(uri);
   }, [doFetchRecommendedContent, isFloating, uri]);
 
   React.useEffect(() => {
     if (isFloating && isMobile) {
       doSetMobilePlayerDimensions({ height: null, width: null });
+      doSetPlayingUri({ uri: null });
+      const cover = document.querySelector(`.${PRIMARY_PLAYER_WRAPPER_CLASS}`);
+      if (cover) {
+        cover.style.height = `unset`;
+        cover.style.opacity = 'unset';
+      }
     }
   }, [doSetMobilePlayerDimensions, doSetPlayingUri, isFloating, isMobile]);
 
@@ -314,11 +423,12 @@ export default function FileRenderFloating(props: Props) {
           !isFloating && fileViewerRect
             ? {
                 width: fileViewerRect.width,
-                height: fileViewerRect.height,
+                height: isMobile ? '0px' : fileViewerRect.height,
                 left: fileViewerRect.x,
                 top: isMobile
                   ? HEADER_HEIGHT_MOBILE
                   : fileViewerRect.windowOffset + fileViewerRect.top - HEADER_HEIGHT - (IS_DESKTOP_MAC ? 24 : 0),
+                paddingBottom: isMobile ? fileViewerRect.height : undefined,
               }
             : {}
         }

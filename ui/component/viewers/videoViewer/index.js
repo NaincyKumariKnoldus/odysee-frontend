@@ -12,6 +12,7 @@ import {
   doAnalyticsBuffer,
   doAnaltyicsPurchaseEvent,
   doAnalyticsView,
+  doSetMobilePlayerDimensions,
 } from 'redux/actions/app';
 import { selectVolume, selectMute } from 'redux/selectors/app';
 import { savePosition, clearPosition, doPlayUri, doSetPlayingUri } from 'redux/actions/content';
@@ -95,6 +96,7 @@ const perform = (dispatch) => ({
     ),
   doAnalyticsView: (uri, timeToStart) => dispatch(doAnalyticsView(uri, timeToStart)),
   claimRewards: () => dispatch(doClaimEligiblePurchaseRewards()),
+  doSetMobilePlayerDimensions: (dimensions) => dispatch(doSetMobilePlayerDimensions(dimensions)),
 });
 
 export default withRouter(connect(select, perform)(VideoViewer));
