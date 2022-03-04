@@ -182,7 +182,7 @@
   height: 100%;
   z-index: 1;
   overflow: hidden;
-  max-height: var(--inline-player-max-height);
+  max-height: 80vh;
 }
 
 .file-render--video {

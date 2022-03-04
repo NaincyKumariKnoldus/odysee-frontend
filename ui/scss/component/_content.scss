@@ -24,7 +24,11 @@
   border: none;
 
   @media (max-width: $breakpoint-small) {
-    max-height: var(--mobile-player-max-height);
+    max-height: 80vh;
+
+    video {
+      max-height: 80vh;
+    }
   }
 }
 
@@ -79,6 +83,10 @@
   height: 100%;
   background-color: black;
   border-radius: var(--border-radius);
+
+  @media (max-width: $breakpoint-small) {
+    position: absolute;
+  }
 }
 
 .content__wrapper--floating {
@@ -201,7 +209,6 @@
     border-radius: 0;
     border: none;
     margin: 0;
-    max-height: var(--mobile-player-max-height);
   }
 }
 
